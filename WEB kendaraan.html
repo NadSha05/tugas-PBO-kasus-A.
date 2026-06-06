@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { Car, Zap, Bike, Search, Plus, Info, ChevronDown, ChevronUp, X } from 'lucide-react';
+
+const initialData = [
+  { id: 1, jenis_kendaraan: 'mobil_konvensional', brand: 'Toyota', model: 'Avanza', tahun: 2024, harga_pasar: 250000000, detail: { mesin: '1500 cc', bahan_bakar: 'Bensin' } },
+  { id: 2, jenis_kendaraan: 'mobil_listrik', brand: 'Hyundai', model: 'Ioniq 5', tahun: 2025, harga_pasar: 750000000, detail: { baterai: '60 kWh', jarak: '400 km' } },
+  { id: 3, jenis_kendaraan: 'motor_besar', brand: 'Kawasaki', model: 'Ninja ZX-6R', tahun: 2024, harga_pasar: 350000000, detail: { rantai: 'O-Ring', mode: 'Sport' } },
+];
+
+export default function App() {
+  const [kendaraan, setKendaraan] = useState(initialData);
+  const [filter, setFilter] = useState('semua');
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ jenis_kendaraan: 'mobil_konvensional', brand: '', model: '', tahun: '', harga_pasar: '', info1: '', info2: '' });
+
+  const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newId = kendaraan.length + 1;
+    const newData = {
+      id: newId,
+      ...formData,
+      detail: { detail1: formData.info1, detail2: formData.info2 }
+    };
+    setKendaraan([...kendaraan, newData]);
+    setIsModalOpen(false);
+    setFormData({ jenis_kendaraan: 'mobil_konvensional', brand: '', model: '', tahun: '', harga_pasar: '', info1: '', info2: '' });
+  };
+
+  const filteredData = filter === 'semua' ? kendaraan : kendaraan.filter(item => item.jenis_kendaraan === filter);
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <nav className="w-64 bg-white border-r p-6 hidden md:block">
+        <h1 className="text-xl font-bold mb-8 text-blue-900">Showroom App</h1>
+        <div className="space-y-4">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-full font-semibold text-blue-600 flex items-center justify-between">
+            <span className="flex items-center gap-3"><Car size={20}/> Kendaraan</span>
+            {isMenuOpen ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+          </button>
+          {isMenuOpen && (
+            <ul className="pl-8 space-y-3 mt-2">
+              <li className="cursor-pointer text-gray-600 hover:text-blue-600" onClick={() => setFilter('semua')}>Semua</li>
+              <li className="cursor-pointer text-gray-600 hover:text-blue-600" onClick={() => setFilter('mobil_konvensional')}>Mobil Konvensional</li>
+              <li className="cursor-pointer text-gray-600 hover:text-blue-600" onClick={() => setFilter('mobil_listrik')}>Mobil Listrik</li>
+              <li className="cursor-pointer text-gray-600 hover:text-blue-600" onClick={() => setFilter('motor_besar')}>Motor Besar</li>
+            </ul>
+          )}
+        </div>
+      </nav>
+
+      {/* Main */}
+      <main className="flex-1 p-8">
+        <header className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold capitalize">{filter.replace('_', ' ')}</h2>
+          <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700">
+            <Plus size={20}/> Tambah Kendaraan
+          </button>
+        </header>
+
+        <div className="grid gap-6">
+          {filteredData.map((item) => (
+            <div key={item.id} className="bg-white p-6 rounded-xl border shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-md transition">
+              <div className="w-full md:w-48 h-32 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500"><Car size={48} /></div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold">{item.brand} {item.model} {item.tahun}</h3>
+                <p className="text-gray-500 text-sm mb-4 capitalize">{item.jenis_kendaraan.replace('_', ' ')}</p>
+                <p className="font-bold text-blue-600">{formatRupiah(item.harga_pasar)}</p>
+              </div>
+              <div className="md:border-l pl-6 flex flex-col justify-center">
+                <p className="font-bold flex items-center gap-1 mb-1 text-sm"><Info size={14}/> Detail:</p>
+                {Object.values(item.detail).map((val, i) => <p key={i} className="text-sm text-gray-600">{val}</p>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      {/* Modal Tambah */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex justify-between mb-4">
+              <h2 className="text-xl font-bold">Tambah Kendaraan</h2>
+              <X className="cursor-pointer" onClick={() => setIsModalOpen(false)}/>
+            </div>
+            <select className="w-full p-2 border rounded mb-3" onChange={(e) => setFormData({...formData, jenis_kendaraan: e.target.value})}>
+              <option value="mobil_konvensional">Mobil Konvensional</option>
+              <option value="mobil_listrik">Mobil Listrik</option>
+              <option value="motor_besar">Motor Besar</option>
+            </select>
+            <input required placeholder="Brand" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, brand: e.target.value})} />
+            <input required placeholder="Model" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, model: e.target.value})} />
+            <input required placeholder="Tahun" type="number" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, tahun: e.target.value})} />
+            <input required placeholder="Harga" type="number" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, harga_pasar: e.target.value})} />
+            <input required placeholder="Info Tambahan 1" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, info1: e.target.value})} />
+            <input required placeholder="Info Tambahan 2" className="w-full p-2 border rounded mb-3" onChange={e => setFormData({...formData, info2: e.target.value})} />
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded font-bold">Simpan</button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
